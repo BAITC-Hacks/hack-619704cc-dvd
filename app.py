@@ -1,14 +1,7 @@
-import os
 from datetime import date, timedelta
 
 import pandas as pd
 import streamlit as st
-
-try:
-    from dotenv import load_dotenv
-    load_dotenv()
-except ImportError:
-    pass
 
 
 st.set_page_config(
@@ -134,4 +127,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
