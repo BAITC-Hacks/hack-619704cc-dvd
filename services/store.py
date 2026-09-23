@@ -5,12 +5,15 @@ import json
 import secrets
 import sqlite3
 import time
+from functools import partial
 from contextlib import contextmanager
 from datetime import date, timedelta
 from pathlib import Path
 
 from services.dataset import parse_dataset
 from services.recommendations import candidates
+from services.progression import RANKS, rank_progress
+from services.i18n import translate
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -31,6 +34,10 @@ class Store:
                     locked_until REAL DEFAULT 0);
                 CREATE TABLE IF NOT EXISTS sessions (digest TEXT PRIMARY KEY, login TEXT, expires REAL);
                 CREATE TABLE IF NOT EXISTS dataset (id INTEGER PRIMARY KEY CHECK(id=1), body TEXT NOT NULL);
+                CREATE TABLE IF NOT EXISTS rank_rewards (
+                    employee_id TEXT NOT NULL, rank_id TEXT NOT NULL,
+                    points INTEGER NOT NULL, badge TEXT NOT NULL, awarded_at TEXT NOT NULL,
+                    PRIMARY KEY (employee_id, rank_id));
             """)
             db.execute("BEGIN IMMEDIATE")
             if not db.execute("SELECT 1 FROM dataset").fetchone():
@@ -39,6 +46,24 @@ class Store:
                 self._add_user(db, "hr", "HrQuest2026!", "hr", None)
                 for p in data["employees"]:
                     self._add_user(db, p["id"], "Quest2026!", "employee", p["id"])
+            # Backfill existing progress without resetting accounts or the dataset.
+            self._sync_rewards(db, self._read(db))
+
+    @staticmethod
+    def _sync_rewards(db, data, employee_id=None, today=None):
+        added = []
+        for p in data["employees"]:
+            if employee_id and p["id"] != employee_id:
+                continue
+            own = [h for h in data["history"] if h["employee_id"] == p["id"]]
+            level = rank_progress(own)["level"]
+            for rank in RANKS:
+                if level >= rank["level"]:
+                    result = db.execute("INSERT OR IGNORE INTO rank_rewards VALUES(?,?,?,?,?)",
+                        (p["id"], rank["id"], rank["points"], rank["badge"], (today or date.today()).isoformat()))
+                    if result.rowcount:
+                        added.append(rank)
+        return added
 
     @contextmanager
     def connection(self):
@@ -120,6 +145,21 @@ class Store:
             self._actor(db, token, "hr")
             return self._read(db)
 
+    def reward_history(self, token, employee_id=None):
+        with self.connection() as db:
+            actor = self._actor(db, token)
+            target = employee_id or actor["employee_id"]
+            if actor["role"] != "hr" and target != actor["employee_id"]:
+                raise PermissionError("Доступны только собственные награды")
+            return [dict(row) for row in db.execute(
+                "SELECT rank_id,points,badge,awarded_at FROM rank_rewards WHERE employee_id=? ORDER BY points,rank_id", (target,))]
+
+    def ask_assistant(self, token, question, messages=(), consent=False, employee_id=None, client=None, locale="ru"):
+        from services.assistant import answer_question
+        # Revalidate the session and ownership for every submitted question.
+        p, activities, history = self.employee_data(token, employee_id)
+        return answer_question(p, activities, history, question, messages, consent, client, locale)
+
     def set_participation(self, token, enabled):
         with self.connection() as db:
             db.execute("BEGIN IMMEDIATE")
@@ -128,7 +168,8 @@ class Store:
             next(p for p in data["employees"] if p["id"] == actor["employee_id"])["opted_in"] = bool(enabled)
             self._save(db, data)
 
-    def activity_action(self, token, activity_id, action, today=None):
+    def activity_action(self, token, activity_id, action, today=None, locale="ru"):
+        t = partial(translate, locale=locale)
         if action not in {"start", "complete", "decline"}:
             raise ValueError("Неизвестное действие")
         today = today or date.today()
@@ -152,7 +193,7 @@ class Store:
                 for skill, gain in a["gains"].items():
                     p["skills"][skill] = min(100, p["skills"].get(skill, 0) + gain)
                 started.update(status="completed", date=today.isoformat(), xp=points)
-                message = f"Готово! Навыки обновлены, +{points} XP" + (" (бонус 20% за выполнение в срок)." if on_time else ". Без штрафа за опоздание.")
+                message = (t('Готово! Навыки обновлены, +{v0} XP', v0=points) + (t(' (бонус 20% за выполнение в срок).') if on_time else t('. Без штрафа за опоздание.')))
             else:
                 if started:
                     if action == "start":
@@ -165,8 +206,13 @@ class Store:
                     data["history"].append({"employee_id": p["id"], "activity_id": activity_id,
                         "status": "started" if action == "start" else "declined", "date": today.isoformat(),
                         "due_date": (today + timedelta(days=a["due_days"])).isoformat() if action == "start" else None, "xp": 0})
-                message = "Активность в маршруте." if action == "start" else "Шаг отклонён. Баллы и навыки сохранены."
+                message = (t('Активность в маршруте.') if action == 'start' else t('Шаг отклонён. Баллы и навыки сохранены.'))
             self._save(db, data)
+            if action == "complete":
+                unlocked = self._sync_rewards(db, data, p["id"], today)
+                for rank in unlocked:
+                    if rank["points"]:
+                        message += t(' Новый ранг «{v0}»: +{v1} Quest-баллов и бейдж «{v2}»!', v0=rank['name'], v1=rank['points'], v2=rank['badge'])
             return message
 
     def import_dataset(self, token, raw):
@@ -197,4 +243,5 @@ class Store:
             # Validate merged limits and references before committing anything.
             parse_dataset(json.dumps(data).encode())
             self._save(db, data)
+            self._sync_rewards(db, data)
             return credentials
