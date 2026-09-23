@@ -1,10 +1,24 @@
 [theme]
-primaryColor = "#159447"
+base = "light"
+primaryColor = "#087F58"
 backgroundColor = "#F5FAF7"
 secondaryBackgroundColor = "#E8F5EC"
 textColor = "#123524"
 font = "sans serif"
+baseRadius = "large"
+borderColor = "#D5E8DD"
+
+[theme.sidebar]
+backgroundColor = "#073B2B"
+secondaryBackgroundColor = "#175340"
+textColor = "#F5FAF7"
+primaryColor = "#72DBA8"
+
+[browser]
+gatherUsageStats = false
 
 [server]
 headless = true
+address = "127.0.0.1"
+maxUploadSize = 2
 

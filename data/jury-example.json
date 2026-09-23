@@ -1,0 +1,272 @@
+{
+  "schema_version": 1,
+  "synthetic": true,
+  "employees": [
+    {
+      "id": "judge1",
+      "name": "Проверочный 01 · Разработчик",
+      "role": "Backend-разработчик",
+      "grade": "Middle",
+      "next_grade": "Senior",
+      "tenure_months": 36,
+      "skills": {
+        "System Design": 50,
+        "Public Speaking": 20,
+        "Python": 75
+      },
+      "requirements": {
+        "System Design": {
+          "target": 80,
+          "weight": 5,
+          "critical": true
+        },
+        "Public Speaking": {
+          "target": 50,
+          "weight": 1,
+          "critical": false
+        },
+        "Python": {
+          "target": 85,
+          "weight": 3,
+          "critical": false
+        }
+      },
+      "preferred_formats": [
+        "Менторство"
+      ],
+      "opted_in": true
+    },
+    {
+      "id": "judge2",
+      "name": "Проверочный 02 · Аналитик",
+      "role": "Аналитик данных",
+      "grade": "Junior",
+      "next_grade": "Middle",
+      "tenure_months": 18,
+      "skills": {
+        "SQL": 25,
+        "Аналитика": 50,
+        "Коммуникация": 65
+      },
+      "requirements": {
+        "SQL": {
+          "target": 65,
+          "weight": 4,
+          "critical": true
+        },
+        "Аналитика": {
+          "target": 80,
+          "weight": 5,
+          "critical": true
+        },
+        "Коммуникация": {
+          "target": 75,
+          "weight": 1,
+          "critical": false
+        }
+      },
+      "preferred_formats": [
+        "Практика"
+      ],
+      "opted_in": true
+    },
+    {
+      "id": "judge3",
+      "name": "Проверочный 03 · Оператор",
+      "role": "Оператор контакт-центра",
+      "grade": "Специалист",
+      "next_grade": "Старший специалист",
+      "tenure_months": 24,
+      "skills": {
+        "Клиентский диалог": 55,
+        "Наставничество": 40
+      },
+      "requirements": {
+        "Клиентский диалог": {
+          "target": 85,
+          "weight": 5,
+          "critical": true
+        },
+        "Наставничество": {
+          "target": 65,
+          "weight": 3,
+          "critical": false
+        }
+      },
+      "preferred_formats": [
+        "Менторство"
+      ],
+      "opted_in": true
+    }
+  ],
+  "activities": [
+    {
+      "id": "design_mentor",
+      "title": "Спроектируй сервис вместе с наставником",
+      "format": "Менторство",
+      "grades": [
+        "Middle"
+      ],
+      "gains": {
+        "System Design": 15
+      },
+      "prerequisites": {
+        "Python": 50
+      },
+      "minutes": 60,
+      "xp": 150,
+      "due_days": 7,
+      "voluntary": true
+    },
+    {
+      "id": "design_workshop",
+      "title": "Архитектурный разбор: устойчивость сервиса",
+      "format": "Практика",
+      "grades": [
+        "Middle"
+      ],
+      "gains": {
+        "System Design": 12
+      },
+      "prerequisites": {},
+      "minutes": 90,
+      "xp": 120,
+      "due_days": 10,
+      "voluntary": true
+    },
+    {
+      "id": "speaking",
+      "title": "Мастерская публичных выступлений",
+      "format": "Вебинар",
+      "grades": [
+        "Middle",
+        "Junior"
+      ],
+      "gains": {
+        "Public Speaking": 20
+      },
+      "prerequisites": {},
+      "minutes": 60,
+      "xp": 100,
+      "due_days": 14,
+      "voluntary": true
+    },
+    {
+      "id": "python",
+      "title": "Практика Python: ревью кода",
+      "format": "Практика",
+      "grades": [
+        "Middle"
+      ],
+      "gains": {
+        "Python": 10
+      },
+      "prerequisites": {},
+      "minutes": 45,
+      "xp": 90,
+      "due_days": 7,
+      "voluntary": true
+    },
+    {
+      "id": "sql_basics",
+      "title": "SQL: реши пять задач на реальном сценарии",
+      "format": "Практика",
+      "grades": [
+        "Junior"
+      ],
+      "gains": {
+        "SQL": 20,
+        "Аналитика": 10
+      },
+      "prerequisites": {},
+      "minutes": 60,
+      "xp": 140,
+      "due_days": 7,
+      "voluntary": true
+    },
+    {
+      "id": "analytics_webinar",
+      "title": "Аналитика: разбор гипотез",
+      "format": "Вебинар",
+      "grades": [
+        "Junior"
+      ],
+      "gains": {
+        "Аналитика": 15
+      },
+      "prerequisites": {},
+      "minutes": 60,
+      "xp": 100,
+      "due_days": 14,
+      "voluntary": true
+    },
+    {
+      "id": "advanced_sql",
+      "title": "Продвинутая оптимизация SQL",
+      "format": "Практика",
+      "grades": [
+        "Junior",
+        "Middle"
+      ],
+      "gains": {
+        "SQL": 25
+      },
+      "prerequisites": {
+        "SQL": 60
+      },
+      "minutes": 90,
+      "xp": 200,
+      "due_days": 14,
+      "voluntary": true
+    },
+    {
+      "id": "timesheets",
+      "title": "Обязательное заполнение таймшита",
+      "format": "Процесс",
+      "grades": [
+        "Middle",
+        "Junior"
+      ],
+      "gains": {
+        "SQL": 1
+      },
+      "prerequisites": {},
+      "minutes": 5,
+      "xp": 0,
+      "due_days": 1,
+      "voluntary": false
+    }
+  ],
+  "history": [
+    {
+      "employee_id": "judge1",
+      "activity_id": "speaking",
+      "status": "missed",
+      "date": "2026-06-10"
+    },
+    {
+      "employee_id": "judge1",
+      "activity_id": "speaking",
+      "status": "missed",
+      "date": "2026-07-10"
+    },
+    {
+      "employee_id": "judge1",
+      "activity_id": "speaking",
+      "status": "missed",
+      "date": "2026-08-10"
+    },
+    {
+      "employee_id": "judge1",
+      "activity_id": "python",
+      "status": "completed",
+      "date": "2026-08-15"
+    },
+    {
+      "employee_id": "judge2",
+      "activity_id": "analytics_webinar",
+      "status": "missed",
+      "date": "2026-08-15"
+    }
+  ]
+}
